@@ -1,7 +1,7 @@
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
-from products.serializers import ProductSerializer
-from products.models import Product
+from products.serializers import ProductSerializer, ProductCreatUpdateSerializer
+from products.models import Product, Review
 from rest_framework import status
 
 
@@ -25,13 +25,22 @@ def product_list_view(request):
         data = ProductSerializer(products, many=True).data
         return Response(data=data)
     elif request.method == 'POST':
-        print(request.data)
+        serializer = ProductCreatUpdateSerializer(data=request.data)
+        if not serializer.is_valid():
+            return Response(data={'errors': serializer.errors},
+                            status=status.HTTP_406_NOT_ACCEPTABLE)
         title = request.data.get('title')
         description = request.data.get('description')
         price = request.data.get('price')
         category_id = request.data.get('category_id')
         product = Product.objects.create(title=title, description=description,
                                          price=price, category_id=category_id)
+        for i in request.data.get("reviews", []):
+            Review.objects.create(
+                stars=i['stars'],
+                text=i['text'],
+                product=product
+            )
         return Response(data=ProductSerializer(product).data,
                         status=status.HTTP_201_CREATED)
 

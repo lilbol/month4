@@ -31,6 +31,7 @@ class Product(models.Model):
 
 
 class Review(models.Model):
+    stars = models.IntegerField(default=5)
     text = models.TextField()
     author = models.ForeignKey(User, on_delete=models.CASCADE,
                                null=True, blank=True)
